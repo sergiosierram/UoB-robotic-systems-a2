@@ -26,15 +26,15 @@ float phi_right = 0; // angular velocity of the right wheel;
 // Class to track robot position.
 class Kinematics_c {
   public:
+    float u = 0;
+    float w = 0;
+    
+    float x_global = 0; // x coordinate of robot in the global frame
+    float y_global = 0; // y coordinate of robot in the global frame
+    float theta_global = 0; // angular position of robot in the global frame
   
     // Constructor, must exist.
     Kinematics_c() {
-      float u = 0;
-      float w = 0;
-
-      float x_global = 0; // x coordinate of robot in the global frame
-      float y_global = 0; // y coordinate of robot in the global frame
-      float theta_global = 0; // angular position of robot in the global frame
 
     } 
 
