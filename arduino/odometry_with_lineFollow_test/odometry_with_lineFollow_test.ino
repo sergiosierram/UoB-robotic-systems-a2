@@ -32,17 +32,19 @@ float i_eline = 0;
 float control_action = 0;
 float last_control_action = 0;
 
+unsigned long tick;
+unsigned long tock;
+
 bool white = false;
 bool last_white = false;
 
 int reverse = 0;
 
-unsigned long tick = 0;
-unsigned long tock = 0;
-
 float x_global_prev = 0;
 float y_global_prev = 0;
 float theta_global_prev = 0;
+float d_prev = 0;
+
 
 // put your setup code here, to run once:
 void setup() {
@@ -64,7 +66,7 @@ void setup() {
   setupEncoder0();
   setupEncoder1();
 
-  unsigned long tick = millis();
+  tick = millis();
 
 }
 
@@ -72,7 +74,7 @@ void setup() {
 // put your main code here, to run repeatedly:
 void loop() {
   //First we read the odometry
-  unsigned long tock = millis();
+  tock = millis();
   unsigned long dt = tock - tick ;
   if (dt > 50){
     kinematics.update(-1*count_e1, -1*count_e0, dt/1000.0);
@@ -82,6 +84,8 @@ void loop() {
       Serial.print(kinematics.y_global - y_global_prev);
       Serial.print(", ");
       Serial.print(kinematics.theta_global - theta_global_prev);
+      Serial.print(", ");
+      Serial.print(kinematics.d - d_prev);
       Serial.println("");
     } else {
       Serial.print(kinematics.x_global);
@@ -111,7 +115,8 @@ void loop() {
       state++;
       x_global_prev = kinematics.x_global;
       y_global_prev = kinematics.y_global;
-      theta_global_prev = kinematics.theta_global;      
+      theta_global_prev = kinematics.theta_global;
+      d_prev = kinematics.d;
     }
   }
   if (state == STATE_ONLINE){
@@ -140,23 +145,8 @@ void loop() {
     //New
     white = lsensors.onWhite();
     if (white and !last_white){
-      tick = millis();
-      if (tick < 6000){
-        reverse = 1;
-        motors.setMotorPower(-30,30);
-        delay(1200);
-      } else {
-        last_white = true;
-      }
-    } else if (white and last_white){
-      tock = millis() - tick;
-      Serial.println(tock);
-      if (tock > 1500){
-        motors.setMotorPower(0,0);
-        state++;
-      }  
-    }
-    last_white = white;
+      state++;
+    } 
   }
   //New
   if (state == STATE_LINE_END){
@@ -166,9 +156,9 @@ void loop() {
   }
     
   //lsensors.getLineError(true);
-  lsensors.readLineSensorsCalibrated(true);
+  lsensors.readLineSensorsCalibrated(false);
   
-  delay(1);
+  delay(5);
   
   
 }
