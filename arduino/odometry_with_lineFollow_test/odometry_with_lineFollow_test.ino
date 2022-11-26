@@ -76,6 +76,21 @@ void loop() {
   unsigned long dt = tock - tick ;
   if (dt > 50){
     kinematics.update(-1*count_e1, -1*count_e0, dt/1000.0);
+    if (state > STATE_JOINING){
+      Serial.print(kinematics.x_global - x_global_prev);
+      Serial.print(", ");
+      Serial.print(kinematics.y_global - y_global_prev);
+      Serial.print(", ");
+      Serial.print(kinematics.theta_global - theta_global_prev);
+      Serial.println("");
+    } else {
+      Serial.print(kinematics.x_global);
+      Serial.print(", ");
+      Serial.print(kinematics.y_global);
+      Serial.print(", ");
+      Serial.print(kinematics.theta_global);
+      Serial.println("");
+    }
     tick = millis();
   }
   
@@ -94,9 +109,9 @@ void loop() {
     if (lsensors.onLine()){
       motors.setMotorPower(0,0);
       state++;
-      x_global_prev = 0;
-      y_global_prev = 0;
-      theta_global_prev = 0;      
+      x_global_prev = kinematics.x_global;
+      y_global_prev = kinematics.y_global;
+      theta_global_prev = kinematics.theta_global;      
     }
   }
   if (state == STATE_ONLINE){
@@ -145,26 +160,9 @@ void loop() {
   }
   //New
   if (state == STATE_LINE_END){
-    motors.setMotorPower(-30,30);
-    delay(1330);
+    
     motors.setMotorPower(0,0);
-    delay(50);
-    motors.setMotorPower(30,30);
-    delay(2000);
-    motors.setMotorPower(0,0);
-    delay(50);
-    if (reverse == 0){
-      motors.setMotorPower(-30,30);
-    } else {
-      motors.setMotorPower(30,-30);
-    }
-    delay(1330/2);
-    motors.setMotorPower(0,0);
-    delay(50);
-    motors.setMotorPower(30,30);
-    delay(12000);
-    motors.setMotorPower(0,0);
-    state++;
+    
   }
     
   //lsensors.getLineError(true);
