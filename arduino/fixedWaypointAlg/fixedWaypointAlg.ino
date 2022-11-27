@@ -56,6 +56,7 @@ int16_t d_prev = 0;
 void setup() {
 
   pinMode(pinBuzzer, OUTPUT);
+  pinMode(BUTTON_A_PIN, INPUT);
 
   Serial.begin(9600);
   delay(1000);
@@ -81,29 +82,35 @@ void setup() {
 // put your main code here, to run repeatedly:
 void loop() {
   //
-  if (digitalRead(BUTTON_A_PIN) == HIGH){
-    waypoint.
-  }
+  
   
   //First we read the odometry
   tock = millis();
   unsigned long dt = tock - tick ;
   if (dt > 50){
     kinematics.update(-1*count_e1, -1*count_e0, dt/1000.0);
+    
+    
+      
+      if (waypoint.t == 0 and state == STATE_ONLINE){
+        waypoint.savePoint(kinematics.x_global - x_global_prev, kinematics.y_global - y_global_prev);
+        Serial.print(waypoint.t);
+        Serial.print(", ");
+        Serial.print(kinematics.x_global - x_global_prev);
+        Serial.print(", ");
+        Serial.print(kinematics.y_global - y_global_prev);
+        Serial.print(", ");
+        Serial.print(kinematics.theta_global - theta_global_prev);
+        Serial.print(", ");
+        Serial.print(kinematics.d - d_prev);
+        Serial.println("");        
+      }
+    
+    
     waypoint.t = waypoint.t + int16_t(dt/50);
-    if (waypoint.t >= 20){
-      waypoint.savePoint(kinematics.x_global - x_global_prev, kinematics.y_global - y_global_prev);
+    if (waypoint.t >= 10){
+      waypoint.t = 0;
     }
-    
-    
-    Serial.print(kinematics.x_global - x_global_prev);
-    Serial.print(", ");
-    Serial.print(kinematics.y_global - y_global_prev);
-    Serial.print(", ");
-    Serial.print(kinematics.theta_global - theta_global_prev);
-    Serial.print(", ");
-    Serial.print(kinematics.d - d_prev);
-    Serial.println("");
     
     /* 
     else {
@@ -166,7 +173,7 @@ void loop() {
     if (white and !last_white){
       tock2 = millis() - tick2;
       //Beware of this timer, it is used to stop the robot at the end of each run
-      if (tock2 > 10000){
+      if (tock2 > 13000){
         state++;
       }
     } 
@@ -175,7 +182,16 @@ void loop() {
   if (state == STATE_LINE_END){
     
     motors.setMotorPower(0,0);
+
+    while (digitalRead(BUTTON_A_PIN) == LOW){
+      
+        waypoint.printPoints();
+      
+        Serial.println("..........");
+        delay(50);
+    }
     
+   
   }
     
   //lsensors.getLineError(true);
