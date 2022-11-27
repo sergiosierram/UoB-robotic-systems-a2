@@ -3,6 +3,7 @@
 #include "encoders.h"
 #include "kinematics.h"
 #include "pid.h"
+#include "waypoint.h"
 
 #define LED_PIN 13  // Pin to activate the orange LED
 boolean led_state;  // Variable to "remember" the state
@@ -18,11 +19,14 @@ boolean led_state;  // Variable to "remember" the state
 
 #define pinBuzzer  6
 
+# define BUTTON_A_PIN  14
+
 Motors_c motors;
 LineSensor_c lsensors;
 Kinematics_c kinematics;
+Waypoint_c waypoint;
 
-int state = 0;
+uint8_t state = 0;
 
 float eline = 0;
 float last_eline = 0;
@@ -40,12 +44,12 @@ unsigned long tock2;
 bool white = false;
 bool last_white = false;
 
-int reverse = 0;
+uint8_t reverse = 0;
 
-float x_global_prev = 0;
-float y_global_prev = 0;
+int16_t x_global_prev = 0;
+int16_t y_global_prev = 0;
 float theta_global_prev = 0;
-float d_prev = 0;
+int16_t d_prev = 0;
 
 
 // put your setup code here, to run once:
@@ -76,28 +80,40 @@ void setup() {
 
 // put your main code here, to run repeatedly:
 void loop() {
+  //
+  if (digitalRead(BUTTON_A_PIN) == HIGH){
+    waypoint.
+  }
+  
   //First we read the odometry
   tock = millis();
   unsigned long dt = tock - tick ;
   if (dt > 50){
     kinematics.update(-1*count_e1, -1*count_e0, dt/1000.0);
-    if (state > STATE_JOINING){
-      Serial.print(kinematics.x_global - x_global_prev);
-      Serial.print(", ");
-      Serial.print(kinematics.y_global - y_global_prev);
-      Serial.print(", ");
-      Serial.print(kinematics.theta_global - theta_global_prev);
-      Serial.print(", ");
-      Serial.print(kinematics.d - d_prev);
-      Serial.println("");
-    } else {
+    waypoint.t = waypoint.t + int16_t(dt/50);
+    if (waypoint.t >= 20){
+      waypoint.savePoint(kinematics.x_global - x_global_prev, kinematics.y_global - y_global_prev);
+    }
+    
+    
+    Serial.print(kinematics.x_global - x_global_prev);
+    Serial.print(", ");
+    Serial.print(kinematics.y_global - y_global_prev);
+    Serial.print(", ");
+    Serial.print(kinematics.theta_global - theta_global_prev);
+    Serial.print(", ");
+    Serial.print(kinematics.d - d_prev);
+    Serial.println("");
+    
+    /* 
+    else {
       Serial.print(kinematics.x_global);
       Serial.print(", ");
       Serial.print(kinematics.y_global);
       Serial.print(", ");
       Serial.print(kinematics.theta_global);
       Serial.println("");
-    }
+    }*/
     tick = millis();
   }
   

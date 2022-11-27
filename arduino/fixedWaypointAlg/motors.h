@@ -58,8 +58,8 @@ class Motors_c {
       left_pwm = checkPwm(left_pwm);
       right_pwm = checkPwm(right_pwm);
 
-      int left_reverse = 1;
-      int right_reverse = 1;
+      uint8_t left_reverse = 1;
+      uint8_t right_reverse = 1;
       
       //Chek direction
       if (left_pwm < 0){
