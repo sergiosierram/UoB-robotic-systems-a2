@@ -33,7 +33,9 @@ float control_action = 0;
 float last_control_action = 0;
 
 unsigned long tick;
+unsigned long tick2;
 unsigned long tock;
+unsigned long tock2;
 
 bool white = false;
 bool last_white = false;
@@ -67,6 +69,7 @@ void setup() {
   setupEncoder1();
 
   tick = millis();
+  tick2 = millis();
 
 }
 
@@ -130,11 +133,11 @@ void loop() {
       int vr = 30 + 30*control_action;
       motors.setMotorPower(vl,vr);
     } else if (eline == 2){
-      motors.setMotorPower(0,30);
-      delay(50);
+        motors.setMotorPower(0,30);
+        delay(10);  
     } else if (eline == -2){
-      motors.setMotorPower(30,0);
-      delay(50);
+        motors.setMotorPower(30,0);
+        delay(10);      
     } else if (eline == 10){
       motors.setMotorPower(-30,-30);
       delay(50);
@@ -145,7 +148,11 @@ void loop() {
     //New
     white = lsensors.onWhite();
     if (white and !last_white){
-      state++;
+      tock2 = millis() - tick2;
+      //Beware of this timer, it is used to stop the robot at the end of each run
+      if (tock2 > 10000){
+        state++;
+      }
     } 
   }
   //New
