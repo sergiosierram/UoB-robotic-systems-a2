@@ -7,7 +7,8 @@
 // Class to contain generic PID algorithm.
 class Waypoint_c {
   public:
-    unsigned int8_t idx;
+  
+    int16_t idx = 0;
     int16_t t = 0;
     int16_t x_path[100];
     int16_t y_path[100];
@@ -22,16 +23,20 @@ class Waypoint_c {
     }
 
     void savePoint(int16_t x, int16_t y){
-      x_path[idx] = x;
-      y_path[idx] = y;
-      idx++;
+      if (idx < 100){
+        x_path[idx] = x;
+        y_path[idx] = y;
+        idx++;
+      } else {
+        Serial.println("Skipping");
+      }
     }
 
     void printPoints(){
-      for (unsigned int8_t i = 0; i < idx; i++ ){
-        Serial.print(x_path);
+      for (int16_t i = 0; i < idx; i++ ){
+        Serial.print(x_path[i]);
         Serial.print(", ");
-        Serial.println(y_path);
+        Serial.println(y_path[i]);
       }  
     }
 
