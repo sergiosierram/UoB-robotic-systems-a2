@@ -17,11 +17,11 @@ class Kinematics_c {
     float u = 0;
     float w = 0;
     
-    float x_global = 0; // x coordinate of robot in the global frame
-    float y_global = 0; // y coordinate of robot in the global frame
+    int16_t x_global = 0; // x coordinate of robot in the global frame
+    int16_t y_global = 0; // y coordinate of robot in the global frame
     float theta_global = 0; // angular position of robot in the global frame
 
-    float d = 0;
+    int16_t d = 0;
   
     // Constructor, must exist.
     Kinematics_c() {
@@ -37,11 +37,11 @@ class Kinematics_c {
       u = 0.5*(phi_left + phi_right);
       w = (phi_right - phi_left)/(2*0.0446);
       
-      x_global = x_global + u*cos(theta_global)*dt;
-      y_global = y_global + u*sin(theta_global)*dt;
+      x_global = int16_t(x_global + 1000*u*cos(theta_global)*dt);
+      y_global = int16_t(y_global + 1000*u*sin(theta_global)*dt);
       theta_global = theta_global + dt*w;
 
-      d = d + sqrt(pow(u*cos(theta_global)*dt, 2) + pow(u*sin(theta_global)*dt, 2));
+      d = d + 1000*sqrt(pow(u*cos(theta_global)*dt, 2) + pow(u*sin(theta_global)*dt, 2));
     }
 
     void angularVelocity(volatile long count_e1, volatile long count_e0, float dt) {

@@ -13,22 +13,18 @@
 #define EMIT  11
 #define n_sensors 5
 
-int pins_names[5] = { LS_LEFT2_PIN, LS_LEFT1_PIN, LS_CENTER_PIN, LS_RIGHT1_PIN, LS_RIGHT2_PIN };
-
-int timeout = 5000;
+uint8_t pins_names[5] = { LS_LEFT2_PIN, LS_LEFT1_PIN, LS_CENTER_PIN, LS_RIGHT1_PIN, LS_RIGHT2_PIN };
 
 // Class to operate the linesensor(s).
 class LineSensor_c {
   public:
 
-    unsigned long values[n_sensors] = {timeout, timeout, timeout, timeout, timeout};
-    unsigned long values_calibrated[n_sensors] = {timeout, timeout,timeout, timeout, timeout};
-    unsigned long calibration_min[n_sensors] = {timeout,timeout,timeout, timeout, timeout};
-    unsigned long calibration_max[n_sensors] = {0,0,0, 0, 0};
-    unsigned long calibration_min_black[n_sensors] = {timeout,timeout,timeout, timeout, timeout};
-    unsigned long calibration_max_black[n_sensors] = {0,0,0, 0, 0};
-    unsigned long calibration_offset[n_sensors] = {0,0,0, 0, 0};
-    unsigned long calibration_range[n_sensors] = {timeout,timeout,timeout, timeout, timeout};
+    unsigned short values[n_sensors] = {5000, 5000, 5000, 5000, 5000};
+    unsigned short values_calibrated[n_sensors] = {5000, 5000,5000, 5000, 5000};
+    unsigned short calibration_min[n_sensors] = {5000,5000,5000, 5000, 5000};
+    unsigned short calibration_max[n_sensors] = {0,0,0, 0, 0};
+    unsigned short calibration_offset[n_sensors] = {0,0,0, 0, 0};
+    unsigned short calibration_range[n_sensors] = {5000,5000,5000, 5000, 5000};
     bool calibration_done = false;
     float last_eline = 0;
     float eline = 0;
@@ -41,7 +37,7 @@ class LineSensor_c {
     // Use this function to initialise the pins.
     void initialise() {
       // Declare pins as inputs for IRs
-      for (int pin = 0; pin < n_sensors; pin ++){
+      for (uint8_t pin = 0; pin < n_sensors; pin ++){
         pinMode(pins_names[pin], INPUT);  
       }
 
@@ -130,7 +126,7 @@ class LineSensor_c {
 
     void readLineSensorsCalibrated(bool serial_verbose){
       readLineSensors(false);  
-      for (int s = 0; s < n_sensors; s++){
+      for (uint8_t s = 0; s < n_sensors; s++){
         int aux = (values[s] - (calibration_min[s] + calibration_max[s])/2);
         if (aux > 2000){ 
           aux = 2000;  
@@ -148,25 +144,25 @@ class LineSensor_c {
     }
 
     void readLineSensors(bool serial_verbose){
-      values[0] = timeout;
-      values[1] = timeout;
-      values[2] = timeout;
-      values[3] = timeout;
-      values[4] = timeout;  
+      values[0] = 5000;
+      values[1] = 5000;
+      values[2] = 5000;
+      values[3] = 5000;
+      values[4] = 5000;  
 
-      for (int pin = 0; pin < n_sensors; pin ++){
+      for (uint8_t pin = 0; pin < n_sensors; pin ++){
         chargeCapacitors(pins_names[pin]);  
       }
 
       unsigned long tick = micros();
       unsigned long delta_time = 0;
-      int remaining = n_sensors;
+      uint8_t remaining = n_sensors;
       while (true and remaining > 0){
         delta_time = micros() - tick;
-        if (delta_time >= timeout){
+        if (delta_time >= 5000){
           break;  
         }
-        for (int pin = 0; pin < n_sensors; pin ++){
+        for (uint8_t pin = 0; pin < n_sensors; pin ++){
           if ( digitalRead(pins_names[pin]) == LOW and delta_time < values[pin]){
             values[pin] = delta_time;
             remaining--;
@@ -181,7 +177,7 @@ class LineSensor_c {
       }
     }
 
-    void chargeCapacitors(int pin){
+    void chargeCapacitors(uint8_t pin){
 
       pinMode(pin, OUTPUT);
       digitalWrite(pin, HIGH);
@@ -191,9 +187,9 @@ class LineSensor_c {
     }
 
     void calibrateSensors(){
-      for (int i = 0; i < 10; i ++){
+      for (uint8_t i = 0; i < 10; i ++){
         readLineSensors(false);
-        for (int s = 0; s < n_sensors; s++){
+        for (uint8_t s = 0; s < n_sensors; s++){
           if (values[s] < calibration_min[s]){
             calibration_min[s] = values[s];  
           }
@@ -205,28 +201,7 @@ class LineSensor_c {
       calibration_done = true;
     }
 
-    void calibrateSensorsBlack(){
-      for (int i = 0; i < 10; i ++){
-        readLineSensors(false);
-        for (int s = 0; s < n_sensors; s++){
-          if (values[s] < calibration_min_black[s]){
-            calibration_min_black[s] = values[s];  
-          }
-          if (values[s] > calibration_max_black[s]){
-            calibration_max_black[s] = values[s]; 
-          }  
-        }  
-      }
-      updateCalibration();
-      calibration_done = true;
-    }
-
-    void updateCalibration(){
-      for (int s = 0; s < n_sensors; s++){
-        calibration_offset[s] = (calibration_min[s] + calibration_max[s])/2;
-        calibration_range[s] =  calibration_min_black[s] -  calibration_offset[s];
-      }
-    }
+    
 
 };
 
