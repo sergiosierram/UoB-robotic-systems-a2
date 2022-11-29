@@ -39,6 +39,9 @@ int reverse = 0;
 unsigned long tick = 0;
 unsigned long tock = 0;
 
+volatile long var_e1 = 0; // variable to store the count_e1 as an offset
+volatile long var_e0 = 0;  // variable to store the count_e0 as an offset
+
 // put your setup code here, to run once:
 void setup() {
 
@@ -55,6 +58,8 @@ void setup() {
   lsensors.initialise();
   lsensors.calibrateSensors();
 
+  
+
   unsigned long tick = millis();
 
   
@@ -63,8 +68,11 @@ void setup() {
 
 // put your main code here, to run repeatedly:
 void loop() {
-  
-  
+
+  // Store the value of count_e0 and count_e1 for creating an offset
+  var_e0 = count_e0;
+  var_e1 = count_e1;
+
   if (state == STATE_START){
     motors.setMotorPower(30,30);
     if (lsensors.onBlack()){
@@ -83,6 +91,8 @@ void loop() {
     }
   }
   if (state == STATE_ONLINE){
+    const c_count_e0 = var_e0;
+    const c_count_e1 = var_e1;
     eline = lsensors.getLineError(true);
 
     if (eline > -2 and eline < 2 ){    
