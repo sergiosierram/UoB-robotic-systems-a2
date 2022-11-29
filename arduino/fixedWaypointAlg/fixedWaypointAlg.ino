@@ -80,9 +80,7 @@ void setup() {
 
 
 // put your main code here, to run repeatedly:
-void loop() {
-  //
-  
+void loop() {  
   
   //First we read the odometry
   tock = millis();
@@ -91,7 +89,12 @@ void loop() {
     kinematics.update(-1*count_e1, -1*count_e0, dt/1000.0);
     
     
-      
+      /*
+       * We only save the path points if two conditions are met:
+       * 1. the waypoint.t variable is zero. Please see below how this is set to zero
+       * 2. the current STATE in on the line, meaning we are currently following the black line.
+       *    This also prevents us from saving the odometry before joining the line.
+      */
       if (waypoint.t == 0 and state == STATE_ONLINE){
         waypoint.savePoint(kinematics.x_global - x_global_prev, kinematics.y_global - y_global_prev);
         Serial.print(waypoint.t);
@@ -106,7 +109,15 @@ void loop() {
         Serial.println("");        
       }
     
-    
+    /*
+     * The waypoint.t is zero in two cases:
+     * 1. At the beginning of the code execution (It is initialised with 0). See waypoint.h
+     * 2. Every 10 updates of the odometry. Why? The odometry updates every 50 ms, then if 
+     * we want to save the path points every 500 ms, we need to wait for waypoint.t to reach 10
+     * and then reset it to zero. This wil make the previous conditional to be true and save the
+     * path point. If we wanted to save every 2 seconds, we would ne to wait for waypoint.t to 
+     * reach 40 (expected_saving_period/50 = 2000/50 = 40)
+    */
     waypoint.t = waypoint.t + int16_t(dt/50);
     if (waypoint.t >= 10){
       waypoint.t = 0;
