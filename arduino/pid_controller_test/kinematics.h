@@ -52,6 +52,12 @@ class Kinematics_c {
       count_e0_prev = count_e0;
     }
 
+    void resetOdometry(){
+      x_global = 0; // x coordinate of robot in the global frame
+      y_global = 0; // y coordinate of robot in the global frame
+      theta_global = 0; // angular position of robot in the global frame
+    }
+
 };
 
 

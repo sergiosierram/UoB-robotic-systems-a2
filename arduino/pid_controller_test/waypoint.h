@@ -14,9 +14,13 @@ class Waypoint_c {
      * x_path and y_path are the arrays to save the points
     */
     int16_t idx = 0;
+    int16_t idx2 = 0;
     int16_t t = 0;
+    int16_t t2 = 0;
     int16_t x_path[100];
     int16_t y_path[100];
+    int16_t x_control[100];
+    int16_t y_control[100];
   
     // Constructor, must exist.
     /*
@@ -48,6 +52,16 @@ class Waypoint_c {
       }
     }
 
+    void saveControlPoint(int16_t x, int16_t y){
+      if (idx2 < 100){
+        x_control[idx2] = x;
+        y_control[idx2] = y;
+        idx2++;
+      } else {
+        Serial.println("Skipping");
+      }
+    }
+
     
     /*
      * This function prints all the stored points
@@ -57,6 +71,14 @@ class Waypoint_c {
         Serial.print(x_path[i]);
         Serial.print(", ");
         Serial.println(y_path[i]);
+      }  
+    }
+
+    void printControlPoints(){
+      for (int16_t i = 0; i < idx2; i++ ){
+        Serial.print(x_control[i]);
+        Serial.print(", ");
+        Serial.println(y_control[i]);
       }  
     }
 
