@@ -14,16 +14,17 @@ class Waypoint_c {
      * x_path and y_path are the arrays to save the points
     */
     int16_t idx = 0;
-    int16_t count_skip = 0;
+    int16_t idx2 = 0;
     int16_t t = 0;
-    int16_t x_path[100];
+    int16_t t2 = 0;
+    int16_t aux_i = 0;
+    int16_t x_path[150];
+    int16_t y_path[150];
+    int16_t x_control[150];
+    int16_t y_control[150];
     int16_t x_path_adapt[100];
-    int16_t x_path_adapt2[100];
-    int16_t y_path[100];
     int16_t y_path_adapt[100];
-    int16_t y_path_adapt2[100];
-    float theta_robot[100];
-    float theta_path[100];
+    int16_t theta_path[150];
   
     // Constructor, must exist.
     /*
@@ -31,11 +32,6 @@ class Waypoint_c {
      * impact on the memory.
     */
     Waypoint_c() {
-      for (int16_t i = 0; i < 100; i ++){
-        x_path[i] = 0;
-        y_path[i] = 0;
-        theta_path[i] = 0;  
-      }
 
     }
 
@@ -46,12 +42,22 @@ class Waypoint_c {
      * Idx variable keeps track of the current position of the array, where the 
      * next point needs to be saved.
     */
-    void savePoint(int16_t x, int16_t y, float theta){
+    void savePoint(int16_t x, int16_t y, int16_t theta){
       if (idx < 100){
         x_path[idx] = x;
         y_path[idx] = y;
         theta_path[idx] = theta;
         idx++;
+      } else {
+        Serial.println("Skipping");
+      }
+    }
+
+    void saveControlPoint(int16_t x, int16_t y){
+      if (idx2 < 100){
+        x_control[idx2] = x;
+        y_control[idx2] = y;
+        idx2++;
       } else {
         Serial.println("Skipping");
       }
@@ -63,46 +69,46 @@ class Waypoint_c {
     */
     void printPoints(){
       for (int16_t i = 0; i < idx; i++ ){
-        Serial.print(x_path_adapt[i]);
+        Serial.print(x_path[i]);
         Serial.print(", ");
-        Serial.println(y_path_adapt[i]);
-        // Serial.print(", ");
-        // Serial.println(theta_path[i]);
-
-
+        Serial.println(y_path[i]);
       }  
     }
 
-    // This function reduces the number of waypoints in the path
-    void adaptiveWP1(){
-      // Store the first waypoint as point of reference
-      x_path_adapt[0] = x_path[0];
-      y_path_adapt[0] = y_path[0];
-      for (int16_t i = 1; i < idx; i++){
-        if (abs(theta_robot[i]-theta_robot[i-1]) > 0.04){ // if the robot is not on a straight, keep the waypoint
-          x_path_adapt[i] = x_path[i];
-          y_path_adapt[i] = y_path[i];
-        } 
-      }
+    void printControlPoints(){
+      for (int16_t i = 0; i < idx2; i++ ){
+        Serial.print(x_control[i]);
+        Serial.print(", ");
+        Serial.println(y_control[i]);
+      }  
     }
 
-    // This function will calculate the angle of the slope between two waypoints
-    void slopeWaypoint(){
+    void printPointsAdaptive(){
       for (int16_t i = 0; i < idx; i++){
-        theta_path[i] = atan2((y_path[i+1]-y_path[i])/(x_path[i+1]-x_path[i]))
+        Serial.print(x_path_adapt[i]);
+        Serial.print(", ");
+        Serial.println(y_path_adapt[i]);
       }
     }
 
-    void adaptiveWP2(){
-      x_path_adapt2[0] = x_path[0];
-      y_path_adapt2[0] = y_path[0];
-      for (int16_t i = 1; i < idx; i++){
-        if (abs(theta_path[i]-theta_path[i-1] > 0.28)){
-          x_path_adapt2[i] = x_path[i];
-          y_path_adapt2[i] = y_path[i];
+    void adaptiveWP(){
+      for (int16_t i = 0; i < idx; i++){
+        if (i == 0){
+          x_path_adapt[aux_i] = x_path[i];
+          y_path_adapt[aux_i] = y_path[i];
+          aux_i++;
+        } else if (i == idx - 1) {
+          x_path_adapt[aux_i] = x_path[i];
+          y_path_adapt[aux_i] = y_path[i];
+          aux_i++;
+        } else {
+          if (abs(theta_path[i]/1000.0 - theta_path[i-1]/1000.0) >= 0.04) {
+            x_path_adapt[aux_i] = x_path[i];
+            y_path_adapt[aux_i] = y_path[i];
+            aux_i++;
+          }
         }
       }
-
     }
 
 };
