@@ -262,8 +262,8 @@ void control(int controller){
         error_y = waypoint.y_path[aux_idx] - kinematics.y_global;
         
         //2. Estimate the derivative between the next waypoint and the current waypoint
-        int16_t diff_path_x = (waypoint.x_path[aux_idx+1] - waypoint.x_path[aux_idx])*50/1000.0;
-        int16_t diff_path_y = (waypoint.y_path[aux_idx+1] - waypoint.x_path[aux_idx])*50/1000.0;
+        float diff_path_x = (waypoint.x_path[aux_idx+1] - waypoint.x_path[aux_idx])*50/1000.0;
+        float diff_path_y = (waypoint.y_path[aux_idx+1] - waypoint.x_path[aux_idx])*50/1000.0;
   
         //3. Create a Kinematic/Jacobian matrix with the model of the robot with the point of
         //interest in the front.
