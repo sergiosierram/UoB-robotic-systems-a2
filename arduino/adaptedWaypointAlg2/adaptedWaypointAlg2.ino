@@ -6,7 +6,7 @@
 #include "waypoint.h"
 
 #define LED_PIN 13  // Pin to activate the orange LED
-boolean led_state;  // Variable to "remember" the state
+bool led_state;  // Variable to "remember" the state
                     // of the LED, and toggle it.
 
 #define STATE_START 0
@@ -50,7 +50,6 @@ int16_t x_global_prev = 0;
 int16_t y_global_prev = 0;
 float theta_global_prev = 0;
 int16_t d_prev = 0;
-
 
 // put your setup code here, to run once:
 void setup() {
@@ -184,7 +183,8 @@ void loop() {
     if (white and !last_white){
       tock2 = millis() - tick2;
       //Beware of this timer, it is used to stop the robot at the end of each run
-      if (tock2 > 13000){
+      //if (tock2 > 13000){
+      if (tock2 > 7100){
         state++;
       }
     } 
@@ -193,19 +193,21 @@ void loop() {
   if (state == STATE_LINE_END){
     
     motors.setMotorPower(0,0);
-
+    
+    waypoint.adaptiveWP();
     while (digitalRead(BUTTON_A_PIN) == LOW){
-      
+
+        Serial.println("Created Waypoints");
         waypoint.printPoints();
-      
+        Serial.println("Created adapted waypoints");     
         Serial.println("..........");
         delay(50);
     }
 
-    //waypoint.printPoints();
-    // for (int i = 0; i < waypoint.idx; i++){
-    //   Serial.println(waypoint.theta_path[i]);
-    // }
+    
+    waypoint.printPoints();
+    Serial.println("..........");
+    delay(500);
     
    
   }

@@ -6,7 +6,7 @@
 #include "waypoint.h"
 
 #define LED_PIN 13  // Pin to activate the orange LED
-boolean led_state;  // Variable to "remember" the state
+bool led_state;  // Variable to "remember" the state
                     // of the LED, and toggle it.
 
 #define STATE_START 0
@@ -27,6 +27,8 @@ Kinematics_c kinematics;
 Waypoint_c waypoint;
 
 uint8_t state = 0;
+
+bool filtered = false;
 
 float eline = 0;
 float last_eline = 0;
@@ -184,7 +186,8 @@ void loop() {
     if (white and !last_white){
       tock2 = millis() - tick2;
       //Beware of this timer, it is used to stop the robot at the end of each run
-      if (tock2 > 13000){
+      //if (tock2 > 13000){
+      if (tock2 > 7000){
         state++;
       }
     } 
@@ -194,12 +197,26 @@ void loop() {
     
     motors.setMotorPower(0,0);
 
+    if (!filtered){
+      waypoint.adaptiveWP();
+      filtered = true;
+    }
+
     while (digitalRead(BUTTON_A_PIN) == LOW){
+      Serial.println("Recorded waypoint: ");
+      waypoint.printPoints();
+      Serial.println("Generated adaptive waypoints: ");
+      waypoint.printPointsAdaptive();
+      // Serial.print("Idx = ");
+      // Serial.println(waypoint.idx);
+      // Serial.print("idx_path_robot = ");
+      // Serial.println(waypoint.idx_adapt_robot);
+      // Serial.print("Size of created adaptive waypoint = ");
+      // Serial.println(sizeof(waypoint.x_path_adapt)/sizeof(waypoint.x_path_adapt[0]));
+      Serial.println("-------------------------");
       
-        waypoint.printPoints();
       
-        Serial.println("..........");
-        delay(50);
+      delay(50);
     }
 
     //waypoint.printPoints();

@@ -51,7 +51,6 @@ int16_t y_global_prev = 0;
 float theta_global_prev = 0;
 int16_t d_prev = 0;
 
-
 // put your setup code here, to run once:
 void setup() {
 
@@ -96,7 +95,7 @@ void loop() {
        *    This also prevents us from saving the odometry before joining the line.
       */
       if (waypoint.t == 0 and state == STATE_ONLINE){
-        waypoint.savePoint(kinematics.x_global - x_global_prev, kinematics.y_global - y_global_prev);
+        waypoint.savePoint(kinematics.x_global - x_global_prev, kinematics.y_global - y_global_prev, kinematics.theta_global - theta_global_prev);
         Serial.print(waypoint.t);
         Serial.print(", ");
         Serial.print(kinematics.x_global - x_global_prev);
@@ -184,8 +183,7 @@ void loop() {
     if (white and !last_white){
       tock2 = millis() - tick2;
       //Beware of this timer, it is used to stop the robot at the end of each run
-      //if (tock2 > 13000){
-      if (tock2 > 7000){  
+      if (tock2 > 13000){
         state++;
       }
     } 
@@ -194,13 +192,14 @@ void loop() {
   if (state == STATE_LINE_END){
     
     motors.setMotorPower(0,0);
-
+    
+    waypoint.adaptiveWP1();
     while (digitalRead(BUTTON_A_PIN) == LOW){
       
         waypoint.printPoints();
       
         Serial.println("..........");
-        delay(50);
+        delay(500);
     }
     
    

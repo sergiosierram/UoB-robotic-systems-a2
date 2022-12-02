@@ -18,8 +18,11 @@ class Waypoint_c {
     int16_t t = 0;
     int16_t x_path[100];
     int16_t x_path_adapt[100];
+    int16_t x_path_adapt2[100];
     int16_t y_path[100];
     int16_t y_path_adapt[100];
+    int16_t y_path_adapt2[100];
+    float theta_robot[100];
     float theta_path[100];
   
     // Constructor, must exist.
@@ -60,33 +63,46 @@ class Waypoint_c {
     */
     void printPoints(){
       for (int16_t i = 0; i < idx; i++ ){
-        Serial.print(x_path[i]);
-        Serial.print(", ");
-        Serial.print(y_path[i]);
-        Serial.print(", ");
-        Serial.println(theta_path[i]);
-      }  
-    }
-
-    void printPointsAdapted(){
-      for (int16_t i = 0; i < idx; i++){
         Serial.print(x_path_adapt[i]);
         Serial.print(", ");
         Serial.println(y_path_adapt[i]);
-      }
+        // Serial.print(", ");
+        // Serial.println(theta_path[i]);
+
+
+      }  
     }
 
     // This function reduces the number of waypoints in the path
-    void adaptiveWP(){
+    void adaptiveWP1(){
       // Store the first waypoint as point of reference
       x_path_adapt[0] = x_path[0];
       y_path_adapt[0] = y_path[0];
       for (int16_t i = 1; i < idx; i++){
-        if (abs(theta_path[i]-theta_path[i-1]) > 0.04){ // if the robot is not on a straight, keep the waypoint
+        if (abs(theta_robot[i]-theta_robot[i-1]) > 0.04){ // if the robot is not on a straight, keep the waypoint
           x_path_adapt[i] = x_path[i];
           y_path_adapt[i] = y_path[i];
         } 
       }
+    }
+
+    // This function will calculate the angle of the slope between two waypoints
+    void slopeWaypoint(){
+      for (int16_t i = 0; i < idx; i++){
+        theta_path[i] = atan2((y_path[i+1]-y_path[i])/(x_path[i+1]-x_path[i]))
+      }
+    }
+
+    void adaptiveWP2(){
+      x_path_adapt2[0] = x_path[0];
+      y_path_adapt2[0] = y_path[0];
+      for (int16_t i = 1; i < idx; i++){
+        if (abs(theta_path[i]-theta_path[i-1] > 0.28)){
+          x_path_adapt2[i] = x_path[i];
+          y_path_adapt2[i] = y_path[i];
+        }
+      }
+
     }
 
 };
