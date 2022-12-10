@@ -24,7 +24,7 @@ class Waypoint_c {
     int16_t y_control[150];
     int16_t x_path_adapt[100];
     int16_t y_path_adapt[100];
-    int16_t theta_path[150];
+    //int16_t theta_path[150];
   
     // Constructor, must exist.
     /*
@@ -46,7 +46,7 @@ class Waypoint_c {
       if (idx < 100){
         x_path[idx] = x;
         y_path[idx] = y;
-        theta_path[idx] = theta;
+        //theta_path[idx] = theta;
         idx++;
       } else {
         Serial.println("Skipping");
@@ -84,7 +84,7 @@ class Waypoint_c {
     }
 
     void printPointsAdaptive(){
-      for (int16_t i = 0; i < idx; i++){
+      for (int16_t i = 0; i < aux_i; i++){
         Serial.print(x_path_adapt[i]);
         Serial.print(", ");
         Serial.println(y_path_adapt[i]);
@@ -102,7 +102,12 @@ class Waypoint_c {
           y_path_adapt[aux_i] = y_path[i];
           aux_i++;
         } else {
-          if (abs(theta_path[i]/1000.0 - theta_path[i-1]/1000.0) >= 0.04) {
+          //if (abs(theta_path[i]/1000.0 - theta_path[i-1]/1000.0) >= 0.04) {
+          float beta = abs( atan2(x_path[i+1]-x_path[i], y_path[i+1] - y_path[i]) - atan2(x_path[i]-x_path[i-1], y_path[i] - y_path[i-1]) );
+          if (beta > 3.14){ 
+            beta = 2*3.14 - beta;
+          }
+          if (beta > 0.26){
             x_path_adapt[aux_i] = x_path[i];
             y_path_adapt[aux_i] = y_path[i];
             aux_i++;

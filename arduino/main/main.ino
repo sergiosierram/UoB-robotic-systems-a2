@@ -97,18 +97,22 @@ void setup() {
 // put your main code here, to run repeatedly:
 void loop() {
   if (run_id == RUN_RECORD){
+    
     Serial.println("Recording");
     record(FIXED_WAYPOINT);
+    //record(ADAPTIVE_WAYPOINT);
   } else if (run_id == RUN_CONTROL){
     Serial.println("Controlling");
     delay(1000);
-    control(PID_CONTROL);
+    control(NONLINEAR_CONTROL, FIXED_WAYPOINT);
+    //control(PID_CONTROL, ADAPTIVE_WAYPOINT);
   } else if (run_id == RUN_DONE){
     Serial.println("Job done, please see my results:");
     motors.setMotorPower(0,0);
     while (digitalRead(BUTTON_A_PIN) == HIGH){
         Serial.println(".....Recorded......");
-        waypoint.printPoints();
+        //waypoint.printPointsAdaptive();
+        waypoint.printPoints(); //WHEN USING FIXED
         Serial.println("......Executed.....");
         waypoint.printControlPoints();
         Serial.println("...........");
@@ -186,6 +190,8 @@ void record(int algorithm){
       control_action = 1.5*eline + 0.5*d_eline + 0.1*i_eline;
       int vl = 35 - 30*control_action;
       int vr = 35 + 30*control_action;
+      if (vl < -30){ vl = 0;}
+      if (vr < -30){ vr = 0;}
       
       motors.setMotorPower(vl,vr);
     } else if (eline == 2){
@@ -206,7 +212,7 @@ void record(int algorithm){
     if (white and !last_white){
       tock2 = millis() - tick2;
       //Beware of this timer, it is used to stop the robot at the end of each run
-      if (tock2 > 20000){
+      if (tock2 > 7000){
         state++;
       }
     } 
@@ -234,7 +240,7 @@ void record(int algorithm){
   }
 }
 
-void control(int controller){
+void control(int controller, int algorithm){
   int16_t aux_idx = 0;
   int16_t error_x = 0;
   int16_t error_y = 0;
@@ -260,14 +266,27 @@ void control(int controller){
         if (waypoint.t2 >= 10){
           waypoint.t2 = 0;
         }
-        //1. Estimate the error between the current desired waypoint and the robot
-        error_x = waypoint.x_path[aux_idx] - kinematics.x_global;
-        error_y = waypoint.y_path[aux_idx] - kinematics.y_global;
         
-        //2. Estimate the derivative between the next waypoint and the current waypoint
-        float diff_path_x = (waypoint.x_path[aux_idx+1] - waypoint.x_path[aux_idx])*50/1000.0;
-        float diff_path_y = (waypoint.y_path[aux_idx+1] - waypoint.x_path[aux_idx])*50/1000.0;
-  
+        float diff_path_x;
+        float diff_path_y;
+        if (algorithm == ADAPTIVE_WAYPOINT){
+          //1. Estimate the error between the current desired waypoint and the robot
+          error_x = waypoint.x_path_adapt[aux_idx] - kinematics.x_global;
+          error_y = waypoint.y_path_adapt[aux_idx] - kinematics.y_global;
+          
+          //2. Estimate the derivative between the next waypoint and the current waypoint
+          diff_path_x = (waypoint.x_path_adapt[aux_idx+1] - waypoint.x_path_adapt[aux_idx])*50/1000.0;
+          diff_path_y = (waypoint.y_path_adapt[aux_idx+1] - waypoint.x_path_adapt[aux_idx])*50/1000.0;
+        } else {
+          //1. Estimate the error between the current desired waypoint and the robot
+          error_x = waypoint.x_path[aux_idx] - kinematics.x_global;
+          error_y = waypoint.y_path[aux_idx] - kinematics.y_global;
+          
+          //2. Estimate the derivative between the next waypoint and the current waypoint
+          diff_path_x = (waypoint.x_path[aux_idx+1] - waypoint.x_path[aux_idx])*50/1000.0;
+          diff_path_y = (waypoint.y_path[aux_idx+1] - waypoint.x_path[aux_idx])*50/1000.0;
+        }
+        
         //3. Create a Kinematic/Jacobian matrix with the model of the robot with the point of
         //interest in the front.
         float aux_theta = kinematics.theta_global;
@@ -280,23 +299,49 @@ void control(int controller){
         //5. Calculate the inverse of the Jacobian matrix
         float inv_J[2][2] = {{J[1][1]/det, -1*J[0][1]/det},
                              {-1*J[1][0]/det, J[0][0]/det}};
-  
-        //6. Using the inv(J)*(diff + K*error) get the desired linear and angular velocities
-        float aux[2] = { diff_path_x + 2.0*error_x, //+ 0.1*i_error_x + 0.1*d_error_x,
-                         diff_path_y + 2.0*error_y}; //+ 0.1*i_error_y + 0.1*d_error_y};        
-  
+
+        float aux[2] ;
+        if (controller == PID_CONTROL){
+          //6. Using the inv(J)*(diff + K*error) get the desired linear and angular velocities
+          aux[0] = diff_path_x + 2.0*error_x; //+ 0.1*i_error_x + 0.1*d_error_x,
+          aux[1] = diff_path_y + 2.0*error_y; //+ 0.1*i_error_y + 0.1*d_error_y};        
+        } else {
+          float alpha = atan2(diff_path_y, diff_path_x);
+          aux[0] = diff_path_x+ 40*tanh(1.5*error_x/30); //+ 0.1*i_error_x + 0.1*d_error_x,
+          aux[1] = diff_path_y+ 40*tanh(1.5*error_y/30); //+ 0.1*i_error_y + 0.1*d_error_y}; 
+        }
         //6.1 Here we actually calculate u and w. The operation is inv(J)*(diff_path + k*e)
         float v[2] = {inv_J[0][0]*aux[0] + inv_J[0][1]*aux[1] ,
                       inv_J[1][0]*aux[0] + inv_J[1][1]*aux[1]};
-  
+                  
         //7. Get indivual velocities for the wheels
-        int vl = (v[0] - 44.6*v[1]);
-        int vr = (v[0] + 44.6*v[1]);
+        Serial.print(v[0]);
+        Serial.print(", ");
+        Serial.print(v[1]);
+        Serial.println(",-------- ");
+        int vl;
+        int vr;
+        if (controller == PID_CONTROL){
+          vl = (v[0] - 44.6*v[1]);
+          vr = (v[0] + 44.6*v[1]);
+        } else {
+          vl = v[0] - 44.6*v[1];
+          vr = v[0] + 44.6*v[1];
+          
+          if (vl < 0){ vl = -25;}
+          if (vr < 0){ vr = -25;}
+          if (vl > vr or vl < vr and vl < 25 and vr < 25 and vl >= 0 and vr >= 0){
+            vl = vl + 25;
+            vr = vr + 25;  
+          }
+        }      
   
         if (vl > 35){ vl = 35;}
-        if (vl < -35){ vl = -35;}
+        if (vl < -35){ vl = -25;}
         if (vr > 35){ vr = 35;}
-        if (vr < -35){ vr = -35;}
+        if (vr < -35){ vr = -25;}
+
+        
         
         //8. Set the velocities to the motors.
         motors.setMotorPower(vl,vr);
@@ -316,8 +361,9 @@ void control(int controller){
         Serial.print(", ");
         Serial.print(error_y);
         Serial.println(", ");
+        
         delay(10); 
-        if (abs(error_x) < 25 and abs(error_y) < 25){
+        if (abs(error_x) < 30 and abs(error_y) < 30){
           reached = true;
           i_error_x = 0;
           i_error_y = 0;
