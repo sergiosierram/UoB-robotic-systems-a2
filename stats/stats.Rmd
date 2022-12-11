@@ -2,7 +2,9 @@
 title: "StatisticsForRoboticSystemsA2"
 author: "Sergio"
 date: "12/11/2022"
-output: html_document
+output:
+  html_document: default
+  pdf_document: default
 ---
 
 ```{r setup, include=FALSE}
