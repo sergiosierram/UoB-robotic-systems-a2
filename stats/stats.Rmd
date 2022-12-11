@@ -1,0 +1,71 @@
+---
+title: "StatisticsForRoboticSystemsA2"
+author: "Sergio"
+date: "12/11/2022"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+## Libraries
+
+```{r libs}
+library(readxl)
+#library(magrittr)
+#library(tidyverse)
+#library(rstatix)
+#library(ggpubr )
+library(PMCMRplus)
+```
+
+## Import data
+
+Firs we import our data. Three outcomes variables were measured: time, distance, and kinematic estimation error (kte). Four conditions were tested: Adaptive Waypoint with Non-linear control (AN), Adaptive Waypoint with Proportional control (AP), Fixed Waypoint with Non-linear control (FN), Fixed Waypoint with Proportional control (FP).
+
+```{r importdata}
+data <- read_excel("data.xlsx")
+data$id <- as.factor(data$id)
+data$condition <- as.factor(data$condition)
+summary(data)
+```
+
+## Normality tests
+We carry normality tests. Shapiro Wilk's test was used due to the small sample size. The null hypothesis for this test is that the sample distribution is normal.
+
+```{r norm}
+norm_time <- shapiro.test(data$time)
+distance <- shapiro.test(data$distance)
+kte <- shapiro.test(data$kte)
+
+print(norm_time)
+print(distance)
+print(kte)
+```
+
+## Friedman tests
+Last tests rejected null hypothesis, hence Friedman is applied instead of ANOVA. This tests was chosen to assess differences between multiple conditions, with matched samples (i.e., same robot), and continuous/interval outcome variable. The null hyphotesis is that all conditions are equal.
+
+```{r friedman}
+friedman_time <- friedman.test(data$time, data$condition, data$id )
+friedman_distance <- friedman.test(data$distance, data$condition, data$id )
+friedman_kte <- friedman.test(data$kte, data$condition, data$id )
+
+print(friedman_time)
+print(friedman_distance)
+print(friedman_kte)
+```
+
+## Posthoc tests
+Last tests rejected null hypothesis. Posthoc test are required for pairwise comparisons between conditions. The Bonferroni correction was chosen, as it is the standard for this test in literature.
+
+```{r post}
+posthoc_time = frdAllPairsConoverTest(y=data$time, groups=data$condition, blocks=data$id, p.adjust="bonferroni")
+posthoc_distance = frdAllPairsConoverTest(y=data$distance, groups=data$condition, blocks=data$id, p.adjust="bonferroni")
+posthoc_kte = frdAllPairsConoverTest(y=data$kte, groups=data$condition, blocks=data$id, p.adjust="bonferroni")
+
+print(posthoc_time)
+print(posthoc_distance)
+print(posthoc_kte)
+```
