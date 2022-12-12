@@ -46,3 +46,22 @@ for c = 1:4
         all_ktes(testId, c) = sqrt(mean(aux_kte)^2 + var(aux_kte));
     end
 end
+
+%% Graph
+figure;
+subplot(2,2,1); grid on;
+plot(data.FP.test1.xp/1000, data.FP.test1.yp/1000, 'LineWidt', 2); hold on;
+plot(data.FP.test1.xc/1000, data.FP.test1.yc/1000, 'LineWidt', 2); hold on;
+ylabel("Y [m]"); legend(["Recorded", "Executed"], 'Location','northwest');
+subplot(2,2,2); grid on; 
+plot(data.FN.test1.xp/1000, data.FN.test1.yp/1000, 'LineWidt', 2); hold on;
+plot(data.FN.test1.xc/1000, data.FN.test1.yc/1000, 'LineWidt', 2); hold on;
+legend(["Recorded", "Executed"], 'Location','northwest');
+subplot(2,2,3); grid on; 
+plot(data.AP.test1.xp/1000, data.AP.test1.yp/1000, 'LineWidt', 2); hold on;
+plot(data.AP.test1.xc/1000, data.AP.test1.yc/1000, 'LineWidt', 2); hold on;
+xlabel("X [m]"); ylabel("Y [m]"); legend(["Recorded", "Executed"], 'Location','northwest');
+subplot(2,2,4); grid on;
+plot(data.AN.test1.xp/1000, data.AN.test1.yp/1000, 'LineWidt', 2); hold on;
+plot(data.AN.test1.xc/1000, data.AN.test1.yc/1000, 'LineWidt', 2); hold on;
+xlabel("X [m]"); legend(["Recorded", "Executed"], 'Location','northwest');

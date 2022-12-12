@@ -290,6 +290,48 @@ print(posthoc_time)</code></pre>
 <pre><code>## 
 ## P value adjustment method: bonferroni</code></pre>
 </div>
+<div id="import-odometry" class="section level2">
+<h2>Import Odometry</h2>
+<p>Odometry</p>
+<pre class="r"><code>odom &lt;- read_excel(&quot;odom.xlsx&quot;)
+odom$error &lt;- abs(odom$error) 
+odom$run &lt;- as.factor(odom$run)
+odom$path &lt;- as.factor(odom$path)
+summary(odom)</code></pre>
+<pre><code>##       run          path        error       
+##  1      :  4   huge  :40   Min.   : 0.000  
+##  2      :  4   medium:40   1st Qu.: 1.344  
+##  3      :  4   small :40   Median : 4.750  
+##  4      :  4   square:40   Mean   : 5.675  
+##  5      :  4               3rd Qu.: 7.153  
+##  6      :  4               Max.   :18.919  
+##  (Other):136</code></pre>
+</div>
+<div id="normality-tests-1" class="section level2">
+<h2>Normality tests</h2>
+<p>We carry normality tests. Shapiro Wilk’s test was used due to the small sample size. The null hypothesis for this test is that the sample distribution is normal.</p>
+<pre class="r"><code>norm_odom &lt;- shapiro.test(odom$error)
+
+print(norm_odom)</code></pre>
+<pre><code>## 
+##  Shapiro-Wilk normality test
+## 
+## data:  odom$error
+## W = 0.87099, p-value = 1.612e-10</code></pre>
+</div>
+<div id="wilcoxon-tests" class="section level2">
+<h2>Wilcoxon tests</h2>
+<p>Last tests rejected null hypothesis, hence Wilcoxon is applied instead of T test.</p>
+<pre class="r"><code>wilcox_error &lt;- wilcox.test(odom$error, mu=5, alternative = &quot;greater&quot;)
+
+print(wilcox_error)</code></pre>
+<pre><code>## 
+##  Wilcoxon signed rank test with continuity correction
+## 
+## data:  odom$error
+## V = 5676, p-value = 0.4903
+## alternative hypothesis: true location is greater than 5</code></pre>
+</div>
 
 
 

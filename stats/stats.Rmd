@@ -71,3 +71,33 @@ print(posthoc_time)
 print(posthoc_distance)
 print(posthoc_kte)
 ```
+
+## Import Odometry
+Odometry
+
+```{r importdata2}
+odom <- read_excel("odom.xlsx")
+odom$error <- abs(odom$error) 
+odom$run <- as.factor(odom$run)
+odom$path <- as.factor(odom$path)
+summary(odom)
+```
+
+## Normality tests
+We carry normality tests. Shapiro Wilk's test was used due to the small sample size. The null hypothesis for this test is that the sample distribution is normal.
+
+```{r norm2}
+norm_odom <- shapiro.test(odom$error)
+
+print(norm_odom)
+```
+
+## Wilcoxon tests
+Last tests rejected null hypothesis, hence Wilcoxon is applied instead of T test.
+
+```{r wilcox}
+wilcox_error <- wilcox.test(odom$error, mu=5, alternative = "greater")
+
+print(wilcox_error)
+
+```
